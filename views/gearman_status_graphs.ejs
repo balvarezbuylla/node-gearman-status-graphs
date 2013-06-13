@@ -1,0 +1,100 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:fb="http://ogp.me/ns/fb#">
+<head>
+<title>Sezion - Gearman Job Server Status</title>
+</head>
+<body> 
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="http://code.highcharts.com/highcharts.js"></script> 
+
+
+  <h1 style='text-align:center;'> Gearman Job Server Status </h1>
+
+  
+  <div id="container">
+  <% if (error==1){ 
+     for (var i=0; i< number_workers; i++) {%>
+      <div id="container_<%=i%>"> </div>
+   <% }
+   }else {%>
+      <h1><%=error%></h1>
+  <% }%>
+  </div>
+  
+
+
+
+<script>
+
+<% if (error==1){ %>
+
+//save the input data for ease of use
+var hist_wait=<%-history_data_wait%>;
+var hist_running=<%-history_data_running%>;
+var hist_capable=<%-history_data_capable%>;
+var number_workers=<%=number_workers%>;
+var names= <%-names%>;
+var number_dates=<%=number_dates%>;
+
+
+$(function () { 
+
+var data_wait=[];
+var data_running=[];
+var data_capable=[];
+
+
+  for (var i=0; i<number_workers; i++){    //for each worker one graph
+     var wait=[];
+     var running=[];
+     var capable=[];
+     
+    //for each worker, save appropriate data -> separate for each worker its datas
+    for (var j=0; j<number_dates; j++){       
+      wait.push(hist_wait[i+j*number_workers]);  
+      running.push(hist_running[i+j*number_workers]); 
+      capable.push(hist_capable[i+j*number_workers]);    
+    }
+
+ 
+    data_wait.push(wait);
+    data_running.push(running);
+    data_capable.push(capable); 
+
+    //graph 
+        $('#container_'+i+'').highcharts({
+            title: {
+                text: 'Work:'+ names[i]           //name of work
+            },
+            xAxis: {
+                categories: <%-dates%>,           //string array
+                  labels: {
+                    rotation: 90        
+                  }
+            },
+            series: [{ 
+                data: data_wait[i],               //number array
+                step: 'right',                      
+                name: 'Number of jobs in the queue'
+                },
+                {
+                data: data_running[i] ,         //number array
+                step: 'center',                      
+                name: 'Number of running jobs'
+                },
+                {
+                data: data_capable[i],          //number array
+                step: 'left',                      
+                name: 'Number of capable workers'
+                }
+            ]
+        });
+      
+    }
+});
+
+<%}%>
+
+</script>
+
+</body>
+</html>

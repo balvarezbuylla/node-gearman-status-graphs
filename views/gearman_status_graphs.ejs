@@ -1,100 +1,124 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:fb="http://ogp.me/ns/fb#">
 <head>
-<title>Sezion - Gearman Job Server Status</title>
+   <title>Sezion - Gearman Job Server Status</title>
 </head>
 <body> 
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script src="http://code.highcharts.com/highcharts.js"></script> 
+   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+   <script src="http://code.highcharts.com/stock/highstock.js"></script>
 
 
-  <h1 style='text-align:center;'> Gearman Job Server Status </h1>
+   <h1 style='text-align:center;'> Gearman Job Server Status </h1>
 
-  
-  <div id="container">
-  <% if (error==1){ 
-     for (var i=0; i< number_workers; i++) {%>
-      <div id="container_<%=i%>"> </div>
-   <% }
-   }else {%>
-      <h1><%=error%></h1>
-  <% }%>
-  </div>
-  
-
-
-
-<script>
-
-<% if (error==1){ %>
-
-//save the input data for ease of use
-var hist_wait=<%-history_data_wait%>;
-var hist_running=<%-history_data_running%>;
-var hist_capable=<%-history_data_capable%>;
-var number_workers=<%=number_workers%>;
-var names= <%-names%>;
-var number_dates=<%=number_dates%>;
+   
+   <div id="container">
+   <% if (error==1){ 
+      for (var i=0; i< number_workers; i++) {%>
+         <div id="container_<%=i%>" style="width:100%"> </div>
+      <% }
+      }else {%>
+         <h1><%=error%></h1>
+   <% }%>
+   </div>
+   
 
 
-$(function () { 
 
-var data_wait=[];
-var data_running=[];
-var data_capable=[];
+   <script>
+
+   <% if (error==1){ %>
+
+   //save the input data for ease of use
+   var hist_wait=<%-history_data_wait%>;
+   var hist_running=<%-history_data_running%>;
+   var hist_capable=<%-history_data_capable%>;
+   var number_workers=<%=number_workers%>;
+   var names= <%-names%>;
+   var number_dates=<%=number_dates%>;
 
 
-  for (var i=0; i<number_workers; i++){    //for each worker one graph
-     var wait=[];
-     var running=[];
-     var capable=[];
-     
-    //for each worker, save appropriate data -> separate for each worker its datas
-    for (var j=0; j<number_dates; j++){       
-      wait.push(hist_wait[i+j*number_workers]);  
-      running.push(hist_running[i+j*number_workers]); 
-      capable.push(hist_capable[i+j*number_workers]);    
-    }
+   $(function () { 
 
- 
-    data_wait.push(wait);
-    data_running.push(running);
-    data_capable.push(capable); 
+   var data_wait=[];
+   var data_running=[];
+   var data_capable=[];
 
-    //graph 
-        $('#container_'+i+'').highcharts({
-            title: {
-                text: 'Work:'+ names[i]           //name of work
-            },
-            xAxis: {
-                categories: <%-dates%>,           //string array
-                  labels: {
-                    rotation: 90        
-                  }
-            },
-            series: [{ 
-                data: data_wait[i],               //number array
-                step: 'right',                      
-                name: 'Number of jobs in the queue'
-                },
-                {
-                data: data_running[i] ,         //number array
-                step: 'center',                      
-                name: 'Number of running jobs'
-                },
-                {
-                data: data_capable[i],          //number array
-                step: 'left',                      
-                name: 'Number of capable workers'
-                }
-            ]
-        });
+
+   for (var i=0; i<number_workers; i++){    //for each worker one graph
+      var wait=[];
+      var running=[];
+      var capable=[];
       
-    }
-});
+      //for each worker, save appropriate data -> separate for each worker its datas
+      for (var j=0; j<number_dates; j++){       
+         wait.push(hist_wait[i+j*number_workers]);  
+         running.push(hist_running[i+j*number_workers]); 
+         capable.push(hist_capable[i+j*number_workers]);    
+      }
 
-<%}%>
+   
+      data_wait.push(wait);
+      data_running.push(running);
+      data_capable.push(capable); 
 
-</script>
+      //graph 
+         $('#container_'+i+'').highcharts({
+               chart: {
+                  width: 1256
+               },
+               
+               title: {
+                  text: 'Work:'+ names[i]           //name of work
+               },
+               xAxis: {
+                  categories: <%-dates%>,           //string array
+                     labels: {
+                        rotation: 90,
+                        x: 25,
+                        y: 35
+                     }, 
+                  max: 20
+               },
+               yAxis: {
+                  allowDecimals: false, 
+                  min:0
+               },
+               plotOptions: {
+                  series: {
+                     marker: {
+                        enabled: false  
+                     }
+                  }
+               },
+               scrollbar: {
+                  enabled: true, 
+               },
+               series: [{
+                  lineWidth: 5, 
+                  data: data_wait[i],               //number array
+                  step: 'right',                      
+                  name: 'Number of jobs in the queue'
+                  },
+                  {
+                  lineWidth: 5, 
+                  data: data_running[i] ,         //number array
+                  step: 'center',                      
+                  name: 'Number of running jobs'
+                  },
+                  {
+                  lineWidth: 5,
+                  data: data_capable[i],          //number array
+                  step: 'left',                      
+                  name: 'Number of capable workers'
+                  }
+               ]
+         });
+         
+      }
+   });
+
+   <%}%>
+
+   </script>
 
 </body>
 </html>

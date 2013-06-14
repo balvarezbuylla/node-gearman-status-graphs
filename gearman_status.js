@@ -126,22 +126,11 @@ app.get ('/', function (req, res) {
     }
     
     //parse dates: we return hour, min and second
-    var hour;
-    var min;
-    var sec;
+
     var dates_parsed= [];
     
     for (i=0; i < history_dates.length; i++) {
-      hour=history_dates[i].getHours();
-      min=history_dates[i].getMinutes();
-      sec=history_dates[i].getSeconds();
-      if (i!=0){
-         if (history_dates[i-1].getHours()!=hour)
-           dates_parsed.push(hour+':'+min+':'+sec);
-         else dates_parsed.push('');  
-      }else{
-         dates_parsed.push(hour+':'+min+':'+sec);
-      }   
+      dates_parsed.push(history_dates[i].toLocaleTimeString());    
     }
 
     //we return the data to create the graph

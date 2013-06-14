@@ -19,31 +19,31 @@ var confFile;
          alias: 'http_port',
          describe: 'Http port',
          demand: false,
-      //   default: 8000
+      
       },
       "sp": {
          alias: 'gearman_server_port',
          describe: 'Gearman server port',
          demand: false,
-        // default: 4730
+       
       },
       "sa": {
          alias: 'gearman_server_address',
          describe: 'Gearman server address',
          demand: false,
-       //  default: "127.0.0.1"
+       
       },
       "s": {
          alias: 'buffer_size',
          describe: 'Buffer size',
          demand: false,
-         //default: 10
+      
       },
       "int": {
          alias: 'interval_polling',
          describe: 'Interval to polling',
          demand: false,
-         //default: 1000               //ms
+      
       }, 
       "c": {
          alias: 'config',
@@ -85,7 +85,11 @@ app.configure(function () {
 
 app.get ('/', function (req, res) {
 
-  history = status.writeHistory();
+   if (status.error!=null) {
+      res.render ('gearman_status_graphs', {error: status.error});
+   }
+   
+   history = status.writeHistory();
    
   if (history.length==0) {              // when data is empty
      res.render ('gearman_status_graphs', {error:"There is not enough data to display a graph"});
@@ -154,5 +158,6 @@ app.get ('/', function (req, res) {
 
 http.createServer (app).listen ((nconf.get('http_port')), function(){
   console.log ("[gearman_status]: HTTP server listening on port " + nconf.get('http_port'));
+
 });
 

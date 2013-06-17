@@ -1,6 +1,6 @@
 {
     "name": "node_gearman_status_graphs",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Node.js module to monitor Gearman server status with graphs",
     "preferGlobal": "true",
     "author": "Beatriz Alvarez-Buylla <balvarezbuylla@gmail.com>",

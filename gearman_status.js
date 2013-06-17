@@ -91,58 +91,59 @@ app.get ('/', function (req, res) {
    
    history = status.writeHistory();
    
-  if (history.length==0) {              // when data is empty
-     res.render ('gearman_status_graphs', {error:"There is not enough data to display a graph"});
-  }
-  else {
-  
-    var number_workers=history[0].length;
-       
-    history_dates= [];
-    history_workers_wait= [];
-    history_workers_running= [];
-    history_workers_capables= [];
-    history_names= [];
-    
-    for (i=0; i <history.length; i++) {         //save all dates
-      history_dates.push (history[i][0].date);
-    }
-    
-    for (i=0; i< history[0].length; i++) {      //get worker's name   
-      history_names.push(history[0][i].name);
-    }
-    
-    /*format array produced: for each date has every worker together
-    for example: history_workers_wait [0,0,0,0] -> the first two numbers are worker 1 and worker 2 at the first date and the second two number are worker 1 and worker 2 at the second date
-   */
+   if (history==2){
+       res.render ('gearman_status_graphs', {error:"There isn't worker initiated. Stop the monitoring, init the workers and start the monitoring again."});
+   }
 
-    for (i=0; i< history.length; i++) {        //for each date
-      for (j=0; j<history[i].length; j++){     //for each worker
-        history_workers_wait.push     (history[i][j].workers[0]);  //waiting_jobs for each date
-        history_workers_running.push  (history[i][j].workers[1]);  //running_jobs for each date
-        history_workers_capables.push (history[i][j].workers[2]);  //capable_workers for each date
+  else {    
+      var number_workers=history[0].length;
+         
+      history_dates= [];
+      history_workers_wait= [];
+      history_workers_running= [];
+      history_workers_capables= [];
+      history_names= [];
+      
+      for (i=0; i <history.length; i++) {         //save all dates
+         history_dates.push (history[i][0].date);
       }
       
-    }
-    
-    //parse dates: we return hour, min and second
+      for (i=0; i< history[0].length; i++) {      //get worker's name   
+         history_names.push(history[0][i].name);
+      }
+      
+      /*format array produced: for each date has every worker together
+      for example: history_workers_wait [0,0,0,0] -> the first two numbers are worker 1 and worker 2 at the first date and the second two number are worker 1 and worker 2 at the second date
+      */
 
-    var dates_parsed= [];
-    
-    for (i=0; i < history_dates.length; i++) {
-      dates_parsed.push(history_dates[i].toLocaleTimeString());    
-    }
+      for (i=0; i< history.length; i++) {        //for each date
+         for (j=0; j<history[i].length; j++){     //for each worker
+         history_workers_wait.push     (history[i][j].workers[0]);  //waiting_jobs for each date
+         history_workers_running.push  (history[i][j].workers[1]);  //running_jobs for each date
+         history_workers_capables.push (history[i][j].workers[2]);  //capable_workers for each date
+         }
+         
+      }
+      
+      //parse dates: we return hour, min and second
 
-    //we return the data to create the graph
-    res.render ('gearman_status_graphs', {     names:                JSON.stringify(history_names), 
-                                               dates:                JSON.stringify(dates_parsed), 
-                                               number_workers:       number_workers, 
-                                               history_data_wait:    JSON.stringify(history_workers_wait), 
-                                               history_data_running: JSON.stringify(history_workers_running), 
-                                               history_data_capable: JSON.stringify(history_workers_capables), 
-                                               number_dates:         history_dates.length, 
-                                               error:                1});
-  }
+      var dates_parsed= [];
+      
+      for (i=0; i < history_dates.length; i++) {
+         dates_parsed.push(history_dates[i].toLocaleTimeString());    
+      }
+
+      //we return the data to create the graph
+      res.render ('gearman_status_graphs', {     names:                JSON.stringify(history_names), 
+                                                dates:                JSON.stringify(dates_parsed), 
+                                                number_workers:       number_workers, 
+                                                history_data_wait:    JSON.stringify(history_workers_wait), 
+                                                history_data_running: JSON.stringify(history_workers_running), 
+                                                history_data_capable: JSON.stringify(history_workers_capables), 
+                                                number_dates:         history_dates.length, 
+                                                error:                1});
+      
+    }   
 });
 
 http.createServer (app).listen ((nconf.get('http_port')), function(){

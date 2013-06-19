@@ -9,8 +9,8 @@ With the current values ​​of the configuration: polling every second and eve
     USE:
       Yoy must have node.js installed.
       Install dependent packages with: npm install -d
-      If you want, change configuration values at: gearman-status.conf. Also, toy can define your values by command line.
-      In case that the configuration values aren't defined, the program will use defect values defined at configuration_default.conf
+      If you want, change configuration values at: etc/configuration/gearman_status.conf. Also, toy can define your values by command line.
+      In case that the configuration values aren't defined, the program will use defect values defined at etc/configuration/configuration_default.conf
   
     
         

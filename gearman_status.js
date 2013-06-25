@@ -91,55 +91,48 @@ app.get ('/', function (req, res) {
    
    history = status.writeHistory();
    
-   if (history==2){
-       res.render ('gearman_status_graphs', {error:"There isn't worker initiated. Stop the monitoring, init the workers and start the monitoring again."});
+   if (history.length==0){
+       res.render ('gearman_status_graphs', {error:"There isn't worker initiated."});
    }
 
   else {    
-      var number_workers=history[0].length;
+      var number_functions=history.length;
          
-      history_dates= [];
-      history_workers_wait= [];
-      history_workers_running= [];
-      history_workers_capables= [];
+      history_dates_function= [];
+      history_function_wait= [];
+      history_function_running= [];
+      history_function_capables= [];
       history_names= [];
       
-      for (i=0; i <history.length; i++) {         //save all dates
-         history_dates.push (history[i][0].date);
-      }
-      
-      for (i=0; i< history[0].length; i++) {      //get worker's name   
-         history_names.push(history[0][i].name);
-      }
-      
-      /*format array produced: for each date has every worker together
-      for example: history_workers_wait [0,0,0,0] -> the first two numbers are worker 1 and worker 2 at the first date and the second two number are worker 1 and worker 2 at the second date
-      */
-
-      for (i=0; i< history.length; i++) {        //for each date
-         for (j=0; j<history[i].length; j++){     //for each worker
-         history_workers_wait.push     (history[i][j].workers[0]);  //waiting_jobs for each date
-         history_workers_running.push  (history[i][j].workers[1]);  //running_jobs for each date
-         history_workers_capables.push (history[i][j].workers[2]);  //capable_workers for each date
+      for (i=0; i <history.length; i++) {         //save all dates of each function
+         history_dates= [];
+         history_wait= [];
+         history_running= [];
+         history_capables= [];
+         for (j=0; j<history[i].data.length; j++){
+            history_dates.push             (history[i].data[j].timestamp.toLocaleTimeString());          
+            history_wait.push     (history[i].data[j].waiting);  //waiting_jobs for each date
+            history_running.push  (history[i].data[j].running);  //running_jobs for each date
+            history_capables.push (history[i].data[j].capables);  //capable_workers for each date
          }
-         
+         history_dates_function.push(history_dates);
+         history_function_wait.push(history_wait);
+         history_function_running.push(history_running);
+         history_function_capables.push(history_capables);
+
       }
       
-      //parse dates: we return hour, min and second
-
-      var dates_parsed= [];
-      
-      for (i=0; i < history_dates.length; i++) {
-         dates_parsed.push(history_dates[i].toLocaleTimeString());    
+      for (i=0; i< history.length; i++) {      //get worker's name   
+         history_names.push(history[i].name);
       }
 
       //we return the data to create the graph
-      res.render ('gearman_status_graphs', {     names:                JSON.stringify(history_names), 
-                                                dates:                JSON.stringify(dates_parsed), 
-                                                number_workers:       number_workers, 
-                                                history_data_wait:    JSON.stringify(history_workers_wait), 
-                                                history_data_running: JSON.stringify(history_workers_running), 
-                                                history_data_capable: JSON.stringify(history_workers_capables), 
+      res.render ('gearman_status_graphs', {    names:                JSON.stringify(history_names), 
+                                                dates:                JSON.stringify(history_dates_function), 
+                                                number_functions:       number_functions, 
+                                                history_data_wait:    JSON.stringify(history_function_wait), 
+                                                history_data_running: JSON.stringify(history_function_running), 
+                                                history_data_capable: JSON.stringify(history_function_capables), 
                                                 number_dates:         history_dates.length, 
                                                 error:                1});
       

@@ -12,7 +12,7 @@
    
    <div id="container">
    <% if (error==1){ 
-      for (var i=0; i< number_workers; i++) {%>
+      for (var i=0; i< number_functions; i++) {%>
          <div id="container_<%=i%>" style="width:100%"> </div>
       <% }
       }else {%>
@@ -31,8 +31,9 @@
    var hist_wait=<%-history_data_wait%>;
    var hist_running=<%-history_data_running%>;
    var hist_capable=<%-history_data_capable%>;
-   var number_workers=<%=number_workers%>;
+   var number_functions=<%=number_functions%>;
    var names= <%-names%>;
+   var dates= <%-dates%>;
    var number_dates=<%=number_dates%>;
 
 
@@ -43,22 +44,8 @@
    var data_capable=[];
 
 
-   for (var i=0; i<number_workers; i++){    //for each worker one graph
-      var wait=[];
-      var running=[];
-      var capable=[];
-      
-      //for each worker, save appropriate data -> separate for each worker its datas
-      for (var j=0; j<number_dates; j++){       
-         wait.push(hist_wait[i+j*number_workers]);  
-         running.push(hist_running[i+j*number_workers]); 
-         capable.push(hist_capable[i+j*number_workers]);    
-      }
-
-   
-      data_wait.push(wait);
-      data_running.push(running);
-      data_capable.push(capable); 
+   for (var i=0; i<number_functions; i++){    //for each worker one graph
+    
 
       //graph 
          $('#container_'+i+'').highcharts({
@@ -67,13 +54,12 @@
                },
                
                title: {
-                  text: 'Work:'+ names[i]           //name of work
+                  text: 'Work:'+ names[i]           //name of function
                },
                xAxis: {
-                  categories: <%-dates%>,           //string array
+                  categories: dates[i],           //string array
                      labels: {
                         rotation: 90,
-                        x: 25,
                         y: 35
                      }, 
                   max: 20
@@ -94,19 +80,19 @@
                },
                series: [{
                   lineWidth: 5, 
-                  data: data_wait[i],               //number array
+                  data: hist_wait[i],               //number array
                   step: 'right',                      
                   name: 'Number of jobs in the queue'
                   },
                   {
                   lineWidth: 5, 
-                  data: data_running[i] ,         //number array
+                  data: hist_running[i] ,         //number array
                   step: 'center',                      
                   name: 'Number of running jobs'
                   },
                   {
                   lineWidth: 5,
-                  data: data_capable[i],          //number array
+                  data: hist_capable[i],          //number array
                   step: 'left',                      
                   name: 'Number of capable workers'
                   }
@@ -121,4 +107,12 @@
    </script>
 
 </body>
-</html>
+{ 
+  "DESCRIPTION"            :"gearman_status_graphs.conf",
+  "http_port"              : 8080,
+  "gearman_server_address" : "127.0.0.1",
+  "gearman_server_port"    : 4730,
+  "buffer_size"            : 2880,
+  "interval_polling"       : 1000 //ms
+
+}

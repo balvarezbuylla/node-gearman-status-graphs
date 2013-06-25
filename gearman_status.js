@@ -62,7 +62,7 @@ var confFile;
       console.log ('[configuration]: ' + nconf.get ('DESCRIPTION'));
       nconf.file ({ file: confFile })
    }else {
-      nconf.file ({ file: './configuration/configuration_default.conf' })
+      nconf.file ({ file: './etc/configuration/configuration_default.conf' })
    }
 
 

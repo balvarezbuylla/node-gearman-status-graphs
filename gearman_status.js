@@ -110,7 +110,7 @@ app.get ('/', function (req, res) {
          history_running= [];
          history_capables= [];
          for (j=0; j<history[i].data.length; j++){
-            history_dates.push             (history[i].data[j].timestamp.toLocaleTimeString());          
+            history_dates.push    (history[i].data[j].timestamp.toLocaleTimeString());          
             history_wait.push     (history[i].data[j].waiting);  //waiting_jobs for each date
             history_running.push  (history[i].data[j].running);  //running_jobs for each date
             history_capables.push (history[i].data[j].capables);  //capable_workers for each date

@@ -21,9 +21,9 @@ mkdir -p /etc/
 
 if [ -f /etc/gearman_status.conf ]
 then
-  cp etc/configuration/gearman_status.conf /etc/gearman_status.conf.new
+  cp etc/gearman_status.conf /etc/gearman_status.conf.new
 else
-  cp etc/configuration/gearman_status.conf /etc/gearman_status.conf
+  cp etc/gearman_status.conf /etc/gearman_status.conf
 fi
 
 

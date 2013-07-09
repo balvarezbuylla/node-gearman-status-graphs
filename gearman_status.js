@@ -5,6 +5,7 @@ var path                = require ('path');
 var gearman_status      = require ('node_gearman_status');
 var nconf               = require ('nconf');
 var fs                  = require('fs');
+var RRD                 = require('./node_modules/node_gearman_status/node_modules/rrd').RRD;
 
 //configuration
 var confFile;
@@ -79,6 +80,7 @@ app.configure(function () {
   app.set ('port', nconf.get('http_port'));
   app.set ('views', __dirname+'/views');
   app.set ('view engine', 'ejs');
+  app.use(express.bodyParser());
   app.use (express.static(path.join(__dirname, 'public')));
 });
 
@@ -90,7 +92,6 @@ app.get ('/', function (req, res) {
    }
    
    history = status.writeHistory();
-   
    if (history.length==0){
        res.render ('gearman_status_graphs', {error:"There isn't worker initiated."});
    }
@@ -102,9 +103,16 @@ app.get ('/', function (req, res) {
       history_function_wait= [];
       history_function_running= [];
       history_function_capables= [];
+      history_max_capables= []; //one for each function
+      history_max_running= [];
+      history_max_waiting= [];
+      average_capables= []; //one for each function
+      average_running= [];
+      average_waiting= [];
+      
       history_names= [];
       
-      for (i=0; i <history.length; i++) {         //save all dates of each function
+      for (i=0; i <history.length; i++) {        
          history_dates= [];
          history_wait= [];
          history_running= [];
@@ -119,6 +127,13 @@ app.get ('/', function (req, res) {
          history_function_wait.push(history_wait);
          history_function_running.push(history_running);
          history_function_capables.push(history_capables);
+         
+         history_max_capables.push(history[i].maxCapablesWorkers); 
+         history_max_running.push(history[i].maxRunningJobs);
+         history_max_waiting.push(history[i].maxWaitingJobs);
+         average_capables.push(history[i].average_capable); 
+         average_running.push(history[i].average_running);
+         average_waiting.push(history[i].average_waiting);
 
       }
       
@@ -134,9 +149,93 @@ app.get ('/', function (req, res) {
                                                 history_data_running: JSON.stringify(history_function_running), 
                                                 history_data_capable: JSON.stringify(history_function_capables), 
                                                 number_dates:         history_dates.length, 
-                                                error:                1});
+                                                max_capables:         history_max_capables, 
+                                                max_running:          history_max_running, 
+                                                max_waiting:          history_max_waiting, 
+                                                average_capables:     average_capables, 
+                                                average_running:      average_running, 
+                                                average_waiting:      average_waiting, 
+                                                error:                1,
+                                                parcial:              0
+      });
       
     }   
+});
+
+app.post ('/', function (req, res) {
+
+   var rrd = new RRD(req.body.nameFunction+'.rrd');
+   var date=new Date().getTime();
+    if (req.body.prev_next=='0'){  //previous               
+      //var hour_initial= date+172800000*parseInt(req.body.page);    //172800000 ms = 2 dias
+      //var hour_final= date+172800000*(parseInt(req.body.page)+1);
+      var hour_initial= date+1000000*parseInt(req.body.page);    //172800000 ms = 2 dias
+      var hour_final= date+1000000*(parseInt(req.body.page)+1);
+   }
+   else{  //next    
+     //var hour_initial= date+172800000*(parseInt(req.body.page)-1);                 
+     //var hour_final= date+172800000*parseInt(req.body.page);
+     var hour_initial= date+1000000*(parseInt(req.body.page)-1);                 
+     var hour_final= date+1000000*parseInt(req.body.page);
+   }
+   var date_initial= new Date(hour_initial);
+   var date_final= new Date(hour_final);
+   console.log("ini", date_initial);
+   console.log("fin", date_final);
+
+   rrd.fetch (Math.round(hour_initial / 1000), Math.round(hour_final / 1000), function(err, results) {
+      if (err)
+            res.render ('gearman_status_graphs', {error:err});
+      else{
+ //        console.log(results); 
+         history_dates_function= [];
+         history_function_wait= [];
+         history_function_running= [];
+         history_function_capables= [];
+         max_capables= 0; //one for each function
+         max_running= 0;
+         max_waiting= 0;
+         average_capables=0; //one for each function
+         average_running=0;
+         average_waiting=0;
+         dates=[];
+         count_valid_data=0;
+         
+         //transformo los datos a como los necesito
+         for (i=0; i<results.length; i++){
+            if (results[i].waiting_jobs!="-nan"){
+               count_valid_data++;           
+               history_function_wait.push(parseInt(results[i].waiting_jobs));
+               history_function_capables.push(parseInt(results[i].capable_workers));
+               history_function_running.push(parseInt(results[i].running_jobs));
+               var date= new Date(parseInt(results[i].timestamp*1000)).toLocaleTimeString();
+               dates.push(date);
+
+              //compruebo si son los mayores datos del minuto, y si lo son los sustituyo
+               if (max_capables<parseInt(results[i].capable_workers)) 
+                  max_capables=parseInt(results[i].capable_workers); 
+               if (max_running<parseInt(results[i].running_jobs))
+                  max_running=parseInt(results[i].running_jobs);
+               if (max_waiting<parseInt(results[i].waiting_jobs))
+                  max_waiting=parseInt(results[i].waiting_jobs);
+               
+               average_capables=average_capables+parseInt(results[i].capable_workers);
+               average_running=average_running+parseInt(results[i].running_jobs);
+               average_waiting=average_waiting+parseInt(results[i].waiting_jobs); 
+            }    
+         }
+         
+         //average
+         average_capables=average_capables/count_valid_data;
+         average_running=average_running/count_valid_data;
+         average_waiting=average_waiting/count_valid_data;
+         
+         if (history_function_capables.length==0) 
+             res.json({error:"There aren't data for this interval of time"});
+         else
+            res.json({wait:history_function_wait, capables: history_function_capables, running: history_function_running, date: dates, name:req.body.nameFunction, numberOfFunction:req.body.numberOfFunction, error:0, max_capables:max_capables, max_running: max_running, max_waiting:max_waiting, average_capables: average_capables, average_running: average_running, average_waiting: average_waiting });
+      }
+   });
 });
 
 http.createServer (app).listen ((nconf.get('http_port')), function(){

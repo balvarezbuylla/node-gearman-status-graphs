@@ -12,14 +12,51 @@
    
    <div id="container">
    <% if (error==1){ 
-      for (var i=0; i< number_functions; i++) {%>
-         <div id="container_<%=i%>" style="width:100%"> </div>
+      for (var i=0; i< number_functions; i++) {%> 
+         <div id="container_<%=i%>" style="width:100%"> 
+         </div>
+      
+         <div align="center">
+            <table BORDER=2px>
+            <thead>
+               <tr>
+                  <th></th>
+                  <th>Capable workers:</th>
+                  <th>Running jobs:</th>
+                  <th>Waiting jobs:</th>
+               </tr> 
+            </thead>     
+            <tbody id='max_average_table_<%=i%>'>
+               <tr>
+                  <td>Max:</td>
+                  <td> <%-max_capables[i]%>  </td>
+                  <td> <%-max_running[i]%>   </td>
+                  <td> <%-max_waiting[i]%>   </td>
+               </tr>
+               <tr>
+                  <td>Average:</td>
+                  <td><%-average_capables[i]%> </td>
+                  <td><%-average_running[i]%>  </td>
+                  <td><%-average_waiting[i]%>  </td>
+               </tr>
+            </tbody>   
+         </table> 
+      </div> 
+      
+      <div>      
+         <button id="previous_<%=i%>" onClick="getLog(names[<%=i%>], <%=i%>, 0, --page[<%=i%>])" >Previous</button>
+         <button id="next_<%=i%>" onClick="getLog(names[<%=i%>],<%=i%>,1, ++page[<%=i%>])" disabled>Next</button>
+      </div>
+    
+         
+      <div class="span12"></div>
       <% }
       }else {%>
          <h1><%=error%></h1>
    <% }%>
    </div>
    
+
 
 
 
@@ -34,15 +71,9 @@
    var number_functions=<%=number_functions%>;
    var names= <%-names%>;
    var dates= <%-dates%>;
-   var number_dates=<%=number_dates%>;
-
+   var number_dates=<%=number_dates%>;   
 
    $(function () { 
-
-   var data_wait=[];
-   var data_running=[];
-   var data_capable=[];
-
 
    for (var i=0; i<number_functions; i++){    //for each worker one graph
     
@@ -97,13 +128,105 @@
                   name: 'Number of capable workers'
                   }
                ]
-         });
-         
+         });    
       }
    });
 
+
    <%}%>
 
-   </script>
+  
 
+function getLog (nameFunction, numberFunction, prev_next, page) {
+  var content='';
+  var request = $.ajax({
+    url: "/",
+    type: "POST",
+    data: {nameFunction:nameFunction, numberOfFunction:numberFunction, prev_next:prev_next, page:page},
+    dataType: "json"
+  });
+  
+  request.done (function (result) {
+   var dates=result.date;
+    //graph 
+         $('#container_'+result.numberOfFunction).highcharts({
+               chart: {
+                  width: 1256
+               },
+               
+               title: {
+                  text: 'Work:'+ result.name          //name of function
+               },
+               xAxis: {
+                  categories: dates,           //string array
+                     labels: {
+                        rotation: 90,
+                        y: 35
+                     }, 
+                  max: 20
+               },
+               yAxis: {
+                  allowDecimals: false, 
+                  min:0
+               },
+               plotOptions: {
+                  series: {
+                     marker: {
+                        enabled: false  
+                     }
+                  }
+               },
+               scrollbar: {
+                  enabled: true, 
+               },
+               series: [{
+                  lineWidth: 5, 
+                  data: result.wait,               //number array
+                  step: 'right',                      
+                  name: 'Number of jobs in the queue'
+                  },
+                  {
+                  lineWidth: 5, 
+                  data: result.running ,         //number array
+                  step: 'center',                      
+                  name: 'Number of running jobs'
+                  },
+                  {
+                  lineWidth: 5,
+                  data: result.capables,          //number array
+                  step: 'left',                      
+                  name: 'Number of capable workers'
+                  }
+               ]
+         }); 
+         
+         $('#next_'+result.numberOfFunction).attr ("disabled", false);
+         $('#max_average_table_'+result.numberOfFunction).empty();
+         content+='<tr><td>Max:</td><td>'+result.max_capables+'</td>';
+         content+='<td>'+result.max_running+'</td>';
+         content+='<td>'+result.max_waiting+'</td></tr>';
+         content+='<tr><td>Average:</td>';
+         content+='<td>'+result.average_capables+'</td>';
+         content+='<td>'+result.average_running+'</td>';
+         content+='<td>'+result.average_waiting+'</td></tr>';
+         $('#max_average_table_'+result.numberOfFunction).append(content);
+         
+         //habilitar y deshabilitar botones
+         if (page==0) $('#next_'+result.numberOfFunction).attr ("disabled", true);
+         if (result.dates.length==0) $('#previous_'+result.numberOfFunction).attr ("disabled", true);
+   
+  });
+  
+  request.fail (function (jqXHR, textStatus) {
+    alert( "[gearmanGetLog]: Request failed: " + textStatus );
+  });
+
+}
+
+var page=[];
+for (i=0; i<number_functions; i++){
+   page[i]=0;
+}
+
+</script>
 </body>

@@ -75,8 +75,7 @@
 
    $(function () { 
 
-   for (var i=0; i<number_functions; i++){    //for each worker one graph
-    
+   for (var i=0; i<number_functions; i++){    //for each worker one graph  
 
       //graph 
          $('#container_'+i+'').highcharts({
@@ -155,10 +154,10 @@ function getLog (nameFunction, numberFunction, prev_next, page) {
                },
                
                title: {
-                  text: 'Work:'+ result.name          //name of function
+                  text: 'Work:'+ result.name         
                },
                xAxis: {
-                  categories: dates,           //string array
+                  categories: dates,           
                      labels: {
                         rotation: 90,
                         y: 35
@@ -181,13 +180,13 @@ function getLog (nameFunction, numberFunction, prev_next, page) {
                },
                series: [{
                   lineWidth: 5, 
-                  data: result.wait,               //number array
+                  data: result.wait,             
                   step: 'right',                      
                   name: 'Number of jobs in the queue'
                   },
                   {
                   lineWidth: 5, 
-                  data: result.running ,         //number array
+                  data: result.running ,      
                   step: 'center',                      
                   name: 'Number of running jobs'
                   },
@@ -200,6 +199,7 @@ function getLog (nameFunction, numberFunction, prev_next, page) {
                ]
          }); 
          
+         //modify the table of averages and maximum
          $('#next_'+result.numberOfFunction).attr ("disabled", false);
          $('#max_average_table_'+result.numberOfFunction).empty();
          content+='<tr><td>Max:</td><td>'+result.max_capables+'</td>';
@@ -211,7 +211,7 @@ function getLog (nameFunction, numberFunction, prev_next, page) {
          content+='<td>'+result.average_waiting+'</td></tr>';
          $('#max_average_table_'+result.numberOfFunction).append(content);
          
-         //habilitar y deshabilitar botones
+         //enable and disable he buttons
          if (page==0) $('#next_'+result.numberOfFunction).attr ("disabled", true);
          if (result.dates.length==0) $('#previous_'+result.numberOfFunction).attr ("disabled", true);
    
@@ -223,6 +223,7 @@ function getLog (nameFunction, numberFunction, prev_next, page) {
 
 }
 
+//array page to know on which page each function
 var page=[];
 for (i=0; i<number_functions; i++){
    page[i]=0;

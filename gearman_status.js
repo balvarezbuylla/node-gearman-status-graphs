@@ -163,13 +163,13 @@ app.get ('/', function (req, res) {
 });
 
 app.post ('/', function (req, res) {
-
+   //file which save the data log of each function
    var rrd = new RRD(req.body.nameFunction+'.rrd');
    var date=new Date().getTime();
     if (req.body.prev_next=='0'){  //previous               
-      var hour_initial= date+172800000*parseInt(req.body.page);    //172800000 ms = 2 dias
+      var hour_initial= date+172800000*parseInt(req.body.page);    //172800000 ms = 2 days
       var hour_final= date+172800000*(parseInt(req.body.page)+1);
-      //var hour_initial= date+1000000*parseInt(req.body.page);    //172800000 ms = 2 dias
+      //var hour_initial= date+1000000*parseInt(req.body.page);    
       //var hour_final= date+1000000*(parseInt(req.body.page)+1);
    }
    else{  //next    
@@ -183,25 +183,26 @@ app.post ('/', function (req, res) {
    console.log("ini", date_initial);
    console.log("fin", date_final);
 
+   //function to show the log between two dates
    rrd.fetch (Math.round(hour_initial / 1000), Math.round(hour_final / 1000), function(err, results) {
       if (err)
             res.render ('gearman_status_graphs', {error:err});
       else{
- //        console.log(results); 
-         history_dates_function= [];
-         history_function_wait= [];
-         history_function_running= [];
-         history_function_capables= [];
-         max_capables= 0; //one for each function
-         max_running= 0;
-         max_waiting= 0;
-         average_capables=0; //one for each function
-         average_running=0;
-         average_waiting=0;
-         dates=[];
-         count_valid_data=0;
+        //console.log(results); 
+         history_dates_function       = [];
+         history_function_wait        = [];
+         history_function_running     = [];
+         history_function_capables    = [];
+         max_capables                 = 0; //one for each function
+         max_running                  = 0;
+         max_waiting                  = 0;
+         average_capables             = 0; //one for each function
+         average_running              = 0;
+         average_waiting              = 0;
+         dates                        =[];
+         count_valid_data             = 0;
          
-         //transformo los datos a como los necesito
+         //transform the data to show the graph
          for (i=0; i<results.length; i++){
             if (results[i].waiting_jobs!="-nan"){
                count_valid_data++;           
@@ -211,7 +212,7 @@ app.post ('/', function (req, res) {
                var date= new Date(parseInt(results[i].timestamp*1000)).toLocaleTimeString();
                dates.push(date);
 
-              //compruebo si son los mayores datos del minuto, y si lo son los sustituyo
+              //max
                if (max_capables<parseInt(results[i].capable_workers)) 
                   max_capables=parseInt(results[i].capable_workers); 
                if (max_running<parseInt(results[i].running_jobs))
@@ -219,6 +220,7 @@ app.post ('/', function (req, res) {
                if (max_waiting<parseInt(results[i].waiting_jobs))
                   max_waiting=parseInt(results[i].waiting_jobs);
                
+               //average
                average_capables=average_capables+parseInt(results[i].capable_workers);
                average_running=average_running+parseInt(results[i].running_jobs);
                average_waiting=average_waiting+parseInt(results[i].waiting_jobs); 

@@ -50,7 +50,14 @@ var confFile;
          alias: 'config',
          describe: 'Path to configuration file',
          demand: false
-      }
+      },
+      
+      "log": {
+         alias: 'log', 
+         describe: 'path to log files',
+         demand: false
+      }   
+      
    });
    
    nconf.env();
@@ -70,7 +77,7 @@ var confFile;
 
 
 
-var status= new gearman_status(nconf.get('gearman_server_port'), nconf.get('gearman_server_address'), nconf.get('buffer_size'),       nconf.get('interval_polling'));
+var status= new gearman_status(nconf.get('gearman_server_port'), nconf.get('gearman_server_address'), nconf.get('buffer_size'),       nconf.get('interval_polling'), nconf.get('log'));
 
 status.initHistory ();// init the events
 
@@ -156,7 +163,7 @@ app.get ('/', function (req, res) {
                                                 average_running:      average_running, 
                                                 average_waiting:      average_waiting, 
                                                 error:                1,
-                                                parcial:              0
+                                                log:                  nconf.get('log')
       });
       
     }   
@@ -164,7 +171,8 @@ app.get ('/', function (req, res) {
 
 app.post ('/', function (req, res) {
    //file which save the data log of each function
-   var rrd = new RRD(req.body.nameFunction+'.rrd');
+
+   var rrd = new RRD(nconf.get('log')+req.body.nameFunction+'.rrd');
    var date=new Date().getTime();
     if (req.body.prev_next=='0'){  //previous               
       var hour_initial= date+172800000*parseInt(req.body.page);    //172800000 ms = 2 days
@@ -226,14 +234,13 @@ app.post ('/', function (req, res) {
                average_waiting=average_waiting+parseInt(results[i].waiting_jobs); 
             }    
          }
-         
          //average
          average_capables=average_capables/count_valid_data;
          average_running=average_running/count_valid_data;
          average_waiting=average_waiting/count_valid_data;
          
          if (history_function_capables.length==0) 
-             res.json({error:"There aren't data for this interval of time"});
+             res.json({error:1, name:req.body.nameFunction, numberOfFunction:req.body.numberOfFunction});
          else
             res.json({wait:history_function_wait, capables: history_function_capables, running: history_function_running, date: dates, name:req.body.nameFunction, numberOfFunction:req.body.numberOfFunction, error:0, max_capables:max_capables, max_running: max_running, max_waiting:max_waiting, average_capables: average_capables, average_running: average_running, average_waiting: average_waiting });
       }

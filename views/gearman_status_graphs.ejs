@@ -43,11 +43,12 @@
          </table> 
       </div> 
       
+      <% if (log!=null){ %> 
       <div>      
          <button id="previous_<%=i%>" onClick="getLog(names[<%=i%>], <%=i%>, 0, --page[<%=i%>])" >Previous</button>
          <button id="next_<%=i%>" onClick="getLog(names[<%=i%>],<%=i%>,1, ++page[<%=i%>])" disabled>Next</button>
       </div>
-    
+    <%}%>
          
       <div class="span12"></div>
       <% }
@@ -146,59 +147,69 @@ function getLog (nameFunction, numberFunction, prev_next, page) {
   });
   
   request.done (function (result) {
-   var dates=result.date;
-    //graph 
-         $('#container_'+result.numberOfFunction).highcharts({
-               chart: {
-                  width: 1256
-               },
-               
-               title: {
-                  text: 'Work:'+ result.name         
-               },
-               xAxis: {
-                  categories: dates,           
-                     labels: {
-                        rotation: 90,
-                        y: 35
-                     }, 
-                  max: 20
-               },
-               yAxis: {
-                  allowDecimals: false, 
-                  min:0
-               },
-               plotOptions: {
-                  series: {
-                     marker: {
-                        enabled: false  
+
+   if (result.error==1) {
+     $('#max_average_table_'+result.numberOfFunction).empty();
+     $('#container_'+result.numberOfFunction).empty();
+     var error_empty='<h1>This interval of time don`t have data </h1>' ;
+     $('#container_'+result.numberOfFunction).append(error_empty);
+
+   }
+   else{
+
+       var dates=result.date;
+      //graph 
+            $('#container_'+result.numberOfFunction).highcharts({
+                  chart: {
+                     width: 1256
+                  },
+                  
+                  title: {
+                     text: 'Work:'+ result.name         
+                  },
+                  xAxis: {
+                     categories: dates,           
+                        labels: {
+                           rotation: 90,
+                           y: 35
+                        }, 
+                     max: 20
+                  },
+                  yAxis: {
+                     allowDecimals: false, 
+                     min:0
+                  },
+                  plotOptions: {
+                     series: {
+                        marker: {
+                           enabled: false  
+                        }
                      }
-                  }
-               },
-               scrollbar: {
-                  enabled: true, 
-               },
-               series: [{
-                  lineWidth: 5, 
-                  data: result.wait,             
-                  step: 'right',                      
-                  name: 'Number of jobs in the queue'
                   },
-                  {
-                  lineWidth: 5, 
-                  data: result.running ,      
-                  step: 'center',                      
-                  name: 'Number of running jobs'
+                  scrollbar: {
+                     enabled: true, 
                   },
-                  {
-                  lineWidth: 5,
-                  data: result.capables,          //number array
-                  step: 'left',                      
-                  name: 'Number of capable workers'
-                  }
-               ]
-         }); 
-         
+                  series: [{
+                     lineWidth: 5, 
+                     data: result.wait,             
+                     step: 'right',                      
+                     name: 'Number of jobs in the queue'
+                     },
+                     {
+                     lineWidth: 5, 
+                     data: result.running ,      
+                     step: 'center',                      
+                     name: 'Number of running jobs'
+                     },
+                     {
+                     lineWidth: 5,
+                     data: result.capables,          //number array
+                     step: 'left',                      
+                     name: 'Number of capable workers'
+                     }
+                  ]
+            }); 
+       
          //modify the table of averages and maximum
          $('#next_'+result.numberOfFunction).attr ("disabled", false);
          $('#max_average_table_'+result.numberOfFunction).empty();
@@ -210,10 +221,13 @@ function getLog (nameFunction, numberFunction, prev_next, page) {
          content+='<td>'+result.average_running+'</td>';
          content+='<td>'+result.average_waiting+'</td></tr>';
          $('#max_average_table_'+result.numberOfFunction).append(content);
-         
-         //enable and disable he buttons
-         if (page==0) $('#next_'+result.numberOfFunction).attr ("disabled", true);
-         if (result.dates.length==0) $('#previous_'+result.numberOfFunction).attr ("disabled", true);
+      }
+      
+      //enable and disable he buttons
+      if (page==0) $('#next_'+result.numberOfFunction).attr ("disabled", true);
+      else $('#next_'+result.numberOfFunction).attr ("disabled", false);
+      if (result.error==1) $('#previous_'+result.numberOfFunction).attr ("disabled", true);
+      else $('#previous_'+result.numberOfFunction).attr ("disabled", false);
    
   });
   

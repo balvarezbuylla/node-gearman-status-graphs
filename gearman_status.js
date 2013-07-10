@@ -167,16 +167,16 @@ app.post ('/', function (req, res) {
    var rrd = new RRD(req.body.nameFunction+'.rrd');
    var date=new Date().getTime();
     if (req.body.prev_next=='0'){  //previous               
-      //var hour_initial= date+172800000*parseInt(req.body.page);    //172800000 ms = 2 dias
-      //var hour_final= date+172800000*(parseInt(req.body.page)+1);
-      var hour_initial= date+1000000*parseInt(req.body.page);    //172800000 ms = 2 dias
-      var hour_final= date+1000000*(parseInt(req.body.page)+1);
+      var hour_initial= date+172800000*parseInt(req.body.page);    //172800000 ms = 2 dias
+      var hour_final= date+172800000*(parseInt(req.body.page)+1);
+      //var hour_initial= date+1000000*parseInt(req.body.page);    //172800000 ms = 2 dias
+      //var hour_final= date+1000000*(parseInt(req.body.page)+1);
    }
    else{  //next    
-     //var hour_initial= date+172800000*(parseInt(req.body.page)-1);                 
-     //var hour_final= date+172800000*parseInt(req.body.page);
-     var hour_initial= date+1000000*(parseInt(req.body.page)-1);                 
-     var hour_final= date+1000000*parseInt(req.body.page);
+     var hour_initial= date+172800000*(parseInt(req.body.page)-1);                 
+     var hour_final= date+172800000*parseInt(req.body.page);
+     //var hour_initial= date+1000000*(parseInt(req.body.page)-1);                 
+     //var hour_final= date+1000000*parseInt(req.body.page);
    }
    var date_initial= new Date(hour_initial);
    var date_final= new Date(hour_final);
